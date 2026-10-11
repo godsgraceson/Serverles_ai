@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.sas_scratch/
+artifacts/
+logs/
+.idea/
+.DS_Store
+*.egg-info/
+.venv/
+venv/
+MTech_project/
+data/model_registry.json

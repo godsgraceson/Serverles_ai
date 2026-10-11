@@ -1,0 +1,25 @@
+{
+  "comment": "Offline advisory index for demo CI. Versions are illustrative of the paper's ML supply-chain scanning layer, not a complete CVE feed.",
+  "packages": {
+    "mlflow": {
+      "unsafe_below": "2.12.1",
+      "reason": "Known RCE class issues in experiment-tracking servers used in ML pipelines"
+    },
+    "ray": {
+      "unsafe_below": "2.10.0",
+      "reason": "Dashboard/job APIs historically exposed remote execution risks"
+    },
+    "torchserve": {
+      "unsafe_below": "0.11.0",
+      "reason": "Inference-server CVEs commonly cited for serverless ML stacks"
+    },
+    "tritonclient": {
+      "unsafe_below": "2.40.0",
+      "reason": "Serving-stack advisory placeholder for Triton clients"
+    },
+    "scikit-learn": {
+      "unsafe_below": "1.0.0",
+      "reason": "Require modern sklearn with pickle-load hygiene guidance"
+    }
+  }
+}

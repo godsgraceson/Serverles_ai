@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: SAS-hardened Lambda inference (least privilege, hash env, API).
+
+Parameters:
+  ModelHash:
+    Type: String
+    Description: SHA-256 of the signed model artifact
+
+Resources:
+  InferenceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SASLeastPrivilege
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  InferenceFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: sas-inference
+      Runtime: python3.11
+      Handler: functions.inference.handler.lambda_handler
+      Role: !GetAtt InferenceRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          SAS_EXPECTED_MODEL_HASH: !Ref ModelHash
+          SAS_RETURN_CONFIDENCE: "false"
+          SAS_EXTRACTION_THRESHOLD: "40"
+
+  InferenceUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: AWS_IAM
+      TargetFunctionArn: !GetAtt InferenceFunction.Arn
