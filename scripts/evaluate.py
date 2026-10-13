@@ -9,9 +9,11 @@ platform exploits.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,10 +43,19 @@ def evaluate() -> dict:
     os.environ["SAS_RATE_LIMIT"] = "50"
     reset_shield()
 
-    results = {"passed": [], "failed": []}
+    results = {
+        "paper_scope": (
+            "Defensive SAS control evaluation. These are labeled request "
+            "patterns and tamper checks, not live exploit generators."
+        ),
+        "scenarios": [],
+        "passed": [],
+        "failed": [],
+    }
 
     def expect(name: str, ok: bool) -> None:
         (results["passed"] if ok else results["failed"]).append(name)
+        results["scenarios"].append({"name": name, "passed": ok})
         print(f"[{'PASS' if ok else 'FAIL'}] {name}")
 
     handler = _fresh_handler()
@@ -87,6 +98,11 @@ def evaluate() -> dict:
     results["detection_proxy"] = round(
         len(results["passed"]) / max(len(results["passed"]) + len(results["failed"]), 1), 3
     )
+    report_path = ROOT / "artifacts" / "evaluation_report.json"
+    results["evaluated_at"] = datetime.now(timezone.utc).isoformat()
+    results["report_path"] = str(report_path)
+    report_path.parent.mkdir(exist_ok=True)
+    report_path.write_text(json.dumps(results, indent=2))
     return results
 
 

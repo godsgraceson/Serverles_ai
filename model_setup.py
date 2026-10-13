@@ -16,6 +16,7 @@ ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
 def train_model(path: Path | None = None) -> Path:
     ARTIFACTS.mkdir(parents=True, exist_ok=True)
     model_path = path or ARTIFACTS / "model.pkl"
+    tmp_model_path = model_path.with_name(f"{model_path.name}.{os.getpid()}.tmp")
     x, y = make_classification(
         n_samples=800,
         n_features=4,
@@ -26,7 +27,8 @@ def train_model(path: Path | None = None) -> Path:
     )
     model = LogisticRegression(max_iter=400)
     model.fit(x, y)
-    joblib.dump(model, model_path)
+    joblib.dump(model, tmp_model_path)
+    tmp_model_path.replace(model_path)
     digest = sign_and_export_hash(str(model_path), source="sklearn-trained")
     os.environ["SAS_EXPECTED_MODEL_HASH"] = digest
     print(f"[+] Model saved to {model_path}")

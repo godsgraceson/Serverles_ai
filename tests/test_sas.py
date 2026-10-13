@@ -57,6 +57,19 @@ def test_extraction_pattern_throttled(handler):
     assert 429 in codes
 
 
+def test_blocked_client_does_not_return_success(handler):
+    codes = []
+    for i in range(12):
+        res = handler({"client_id": "persistent-probe", "data": [[0.05 * i, 0.1, -0.2, 0.3]]}, None)
+        codes.append(res["statusCode"])
+    assert 429 in codes
+    assert codes[-1] == 403
+
+    blocked = handler({"client_id": "persistent-probe", "data": [[0.1, 0.1, -0.2, 0.3]]}, None)
+    assert blocked["statusCode"] == 403
+    assert blocked["sas_action"] == "block"
+
+
 def test_model_hash_mismatch(model_path):
     previous = os.environ["SAS_EXPECTED_MODEL_HASH"]
     os.environ["SAS_EXPECTED_MODEL_HASH"] = "ab" * 32

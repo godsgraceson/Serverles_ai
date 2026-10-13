@@ -43,7 +43,9 @@ def secure_function(
                 validation = shield.validator.validate(event)
                 action = shield.responder.decide(client_id, validation=validation)
                 if action != IncidentAction.ALLOW:
-                    return {"statusCode": validation.status_code, "body": validation.message, "sas_action": action}
+                    status_code = validation.status_code if not validation.ok else 403
+                    message = validation.message if not validation.ok else "SAS Security: client blocked"
+                    return {"statusCode": status_code, "body": message, "sas_action": action}
 
             pre_verdict = None
             if model_extraction_protection:
